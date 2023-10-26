@@ -1,0 +1,8 @@
+{
+  "name": "Zellij sessions",
+  "description": "Open zellij sessions in the termainal",
+  "uuid": "zellijsessions@sargo.cc",
+  "shell-version": [
+    "44"
+  ]
+}
