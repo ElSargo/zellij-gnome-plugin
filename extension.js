@@ -31,33 +31,32 @@ const PopupMenu = imports.ui.popupMenu;
 const _ = ExtensionUtils.gettext;
 
 
-function bin2String(array) {
-  return String.fromCharCode.apply(String, array);
-}
-
 function get_session_list() {
-
         var sessions = [];
         let [success, stdout, stderr] = GLib.spawn_command_line_sync("zellij list-sessions");
 
         if (success) {
-            // Convert the stdout (which is in a ByteArray) to a string
-            let outputString = bin2String(stdout);
+            let outputString = String.fromCharCode.apply(String, stdout);
             sessions = outputString.split("\n");
-
-    
-        // Now, outputString contains the stdout as a string
         } else {
-            // Handle errors, if any
             log("Error executing the command: " + stderr);
         }
-        log( sessions , sessions.length);
-        return sessions   ;
+    return sessions;
 }
 
 function clean_name(name) {
     return name.replace(" (current)", "").replace(" ", "");
 } 
+
+function new_button() {
+    let button = new PopupMenu.PopupMenuItem(_("New"));
+    button.connect('activate', () => {
+        GLib.spawn_command_line_async("kitty -- zellij");
+        Main.notify(_('Created new session'));
+    });
+    return button;
+}
+
 
 const Indicator = GObject.registerClass(
 class Indicator extends PanelMenu.Button {
@@ -65,36 +64,16 @@ class Indicator extends PanelMenu.Button {
         super._init(0.0, _('Zellij session indicator'));
 
         this.add_child(new St.Icon({
-            icon_name: 'face-smile-symbolic',
+            icon_name: 'utilities-terminal-symbolic',
             style_class: 'system-status-icon',
         }));
 
-        let top = new PopupMenu.PopupMenuItem(_("Welll"));
-        top.connect('activate', () => {
-            Main.notify(_('Activated ' + "Welll"));
-        });
-        this.menu.addMenuItem(top);
-        // log("YOYO", this.menu);
-
-        // this.connect("activate", () => {
-        //     // let sessions = get_session_list();
-        //     // for (let session in sessions) {
-        //     //     let name = sessions[session];
-        //     //     let item = new PopupMenu.PopupMenuItem(_(name));
-        //     //     item.connect('activate', () => {
-        //     //         Main.notify(_('Activated ' + name));
-        //     //     });
-        //         // this.menu.addMenuItem(item);
-        //     // }
-        //     log("BUTTON WAZ CLICKED");
-        // });
-       
+        this.menu.addMenuItem(new_button());
     }
 
     _onOpenStateChanged(menu,open) {
         super._onOpenStateChanged(menu,open);
         if (open) {
-            log("BLUD gut got");
             this.menu.removeAll();
             let sessions = get_session_list();
             for (let session in sessions) {
@@ -110,8 +89,8 @@ class Indicator extends PanelMenu.Button {
                 });
                 this.menu.addMenuItem(item);
             }
+            this.menu.addMenuItem(new_button());
         }
-        log("BUTTON WAZ CLICKED");
     }
 
 });
